@@ -1,28 +1,43 @@
 <!doctype html>
 <html>
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Socket.IO chat</title>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
     <style>
       /** { margin: 0; padding: 0; box-sizing: border-box; }*/
-      body {
-       font: 13px Helvetica, Arial;
-      }
-      form {
-       background: lightgray;
-       padding: 3px;
-       position: fixed;
-       bottom: 0;
-       width: 100%; 
+      html,body {
+        width: 100%;
+        height: 100%;
+        font: 13px Helvetica, Arial;
       }
       .msg {
         padding-left: 0px;
         padding-right: 0px;
       }
+      #msgBox {
+        height: 100%;
+        width: 100%;
+        padding-bottom: 50px;
+        overflow: scroll;
+        background: lightblue;
+      }
+      #talkBar {
+        height: 50px;
+        width: 100%;
+        background: lightgray;
+        padding-top: 3px;
+        padding-bottom: 3px;
+        position: fixed;
+        bottom: 0;
+      }
       #messages {
-        list-style-type: none; margin: 0; padding: 0;
+        list-style-type: none;
+        margin: 0px;
+        padding: 0px;
       }
       #messages li {
         padding: 5px 10px;
@@ -33,20 +48,20 @@
     </style>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <div class="container">
-        <div class="col-xs-3 nickname">
+    <div id="msgBox"><ul id="messages"></ul></div>
+    <div class="container-fluid" id="talkBar">
+      <div class="row">
+        <div class="col-xs-4 col-sm-3 nickname">
           <input type="nickname" class="form-control" id="nickName">
         </div>
-        <div class="col-xs-6 msg">
+        <div class="col-xs-5 col-sm-6 msg">
           <input type="msg" class="form-control" id="msg" autocomplete="off">
         </div>
         <div class="col-xs-3">
           <button type="button" class="btn btn-success btn-block">Send</button>
         </div>
       </div>
-    </form>
+    </div>
 
 
 
@@ -58,16 +73,19 @@
         var socket = io();
 
         $('button').click(function(){
-          if($('#msg').val() != '')
+          var nickName = $('#nickName').val();
+          var msg = $('#msg').val();
+          if(msg != '')
           {
-            socket.emit('chat message', $('#nickName').val() + ':' + $('#msg').val());
+            if(nickName == '')
+              nickName='匿名';
+            socket.emit('chat message', nickName + ':' + msg);
             $('#msg').val('');
           }
           return false;
         });
 
         socket.on('chat message', function(msg){
-          console.log(msg);
           $('#messages').append($('<li>').text(msg));
         });
       });
