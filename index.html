@@ -94,7 +94,8 @@
 			$(function(){
 				var socket = io();
 				var $msgInput = $('#msg');
-
+				var $msgBox = $('#msgBox');
+				var $messages = $('#messages');
 
 				$('#talkBar').keypress(function(e) {
 					var key = window.event ? e.keyCode : e.which;
@@ -111,7 +112,6 @@
 							nickName='匿名';
 						socket.emit('chat message', nickName + ':' + msg);
 						$('#msg').val('');
-						// $("html, body").animate({ scrollTop: $(document).height() }, "slow");
 						$msgInput.focus();
 					}
 					return false;
@@ -119,6 +119,7 @@
 
 				socket.on('chat message', function(msg){
 					$('#messages').append($('<li>').text(msg));
+					$msgBox.scrollTop($messages[0].scrollHeight+42);
 				});
 
 			});
