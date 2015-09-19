@@ -1,95 +1,137 @@
 <!doctype html>
 <html>
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Socket.IO chat</title>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-    <style>
-      /** { margin: 0; padding: 0; box-sizing: border-box; }*/
-      html,body {
-        width: 100%;
-        height: 100%;
-        font: 13px Helvetica, Arial;
-      }
-      .msg {
-        padding-left: 0px;
-        padding-right: 0px;
-      }
-      #msgBox {
-        height: 100%;
-        width: 100%;
-        padding-bottom: 50px;
-        overflow: scroll;
-        background: lightblue;
-      }
-      #talkBar {
-        height: 50px;
-        width: 100%;
-        background: lightgray;
-        padding-top: 3px;
-        padding-bottom: 3px;
-        position: fixed;
-        bottom: 0;
-      }
-      #messages {
-        list-style-type: none;
-        margin: 0px;
-        padding: 0px;
-      }
-      #messages li {
-        padding: 5px 10px;
-      }
-      #messages li:nth-child(odd) {
-        background: #eee;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="msgBox"><ul id="messages"></ul></div>
-    <div class="container-fluid" id="talkBar">
-      <div class="row">
-        <div class="col-xs-4 col-sm-3 nickname">
-          <input type="nickname" class="form-control" id="nickName">
-        </div>
-        <div class="col-xs-5 col-sm-6 msg">
-          <input type="msg" class="form-control" id="msg" autocomplete="off">
-        </div>
-        <div class="col-xs-3">
-          <button type="button" class="btn btn-success btn-block">Send</button>
-        </div>
-      </div>
-    </div>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Socket.IO chat</title>
+		<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://fortawesome.github.io/Font-Awesome/assets/font-awesome/css/font-awesome.css">
+		<style>
+		html,body {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			font-size: 120%;
+			font-family: "微軟雅黑","Microsoft YaHei","Arial";
+		}
+		ul {
+			list-style: none;
+			word-wrap: break-word;
+		}
+		.pages {
+			height: 100%;
+			width: 100%;
+			margin: 0;
+			padding: 0px 0px 50px 0px;
+		}
+
+		/* msgPage */
+
+		#msgBox {
+			height: 100%;
+			width: 100%;
+			overflow: scroll;
+			background: lightblue;
+		}
+
+		/* msgBar */
+
+		.msg {
+			padding-left: 0px;
+			padding-right: 0px;
+		}
+
+		#talkBar {
+			height: 50px;
+			width: 100%;
+			background: lightgray;
+			padding-top: 9px;
+			padding-bottom: 3px;
+			position: fixed;
+			bottom: 0;
+			position: absolute;
+		}
+		#messages {
+			list-style-type: none;
+			margin: 0px;
+			padding: 0px;
+		}
+		#messages li {
+			padding: 5px 10px;
+		}
+		#messages li:nth-child(odd) {
+			background: #eee;
+		}
+		</style>
+	</head>
+	<body>
+		<div class="pages">
+			<div id="msgBox">
+				<ul id="messages"></ul>
+			</div>
+			<div class="container-fluid" id="talkBar">
+				<div class="row">
+				<div class="col-xs-4 col-sm-3 nickname">
+					<input type="nickname" class="form-control" id="nickName" placeholder="暱稱">
+				</div>
+				<div class="col-xs-5 col-sm-6 msg">
+					<input type="msg" class="form-control" id="msg" autocomplete="off" placeholder="請輸入訊息...">
+				</div>
+				<div class="col-xs-3">
+					<button type="button" class="btn btn-success btn-block"><li class="fa fa-paper-plane fa-fw"></button>
+				</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			$(function(){
+				var socket = io();
+				var $msgInput = $('#msg');
 
 
+				$('#talkBar').keypress(function(e) {
+					var key = window.event ? e.keyCode : e.which;
+					if (key == 13)
+						$('button').click();
+				});
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      $(function(){
-        var socket = io();
+				$('button').click(function(){
+					var nickName = $('#nickName').val();
+					var msg = $('#msg').val();
+					if(msg != '')
+					{
+						if(nickName == '')
+							nickName='匿名';
+						socket.emit('chat message', nickName + ':' + msg);
+						$('#msg').val('');
+						// $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+						$msgInput.focus();
+					}
+					return false;
+				});
 
-        $('button').click(function(){
-          var nickName = $('#nickName').val();
-          var msg = $('#msg').val();
-          if(msg != '')
-          {
-            if(nickName == '')
-              nickName='匿名';
-            socket.emit('chat message', nickName + ':' + msg);
-            $('#msg').val('');
-          }
-          return false;
-        });
+				socket.on('chat message', function(msg){
+					$('#messages').append($('<li>').text(msg));
+				});
 
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-        });
-      });
-
-    </script>
-  </body>
+			});
+		</script>
+	</body>
 </html>
+
+<!-- Test code -->
+<!-- $(function(){
+  var text=0;
+  function msgPost(){
+    $('#msg').val(text++);
+    $('button').click();
+  }
+  setInterval(msgPost,500);
+}) -->
